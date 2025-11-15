@@ -1,43 +1,48 @@
-import streamlit as st
+iimport streamlit as st
 import random
 
-# 게임 상태 초기화
+st.title("⚾ 홈런 더비 게임!")
+
+# 상태 초기화
 if "score" not in st.session_state:
     st.session_state.score = 0
 if "tries" not in st.session_state:
     st.session_state.tries = 0
 
-# 타이틀
-st.title("⚽️ 축구 패널티 슈팅 게임")
+st.write("배트 스윙 타이밍을 맞추어 홈런을 날려보세요!")
 
-# 게임 설명
-st.write("패널티 슈팅을 하세요! 골대에 공을 넣으면 점수를 얻습니다.")
+# 타이밍 조절 슬라이더
+swing_timing = st.slider("스윙 타이밍 (0~100)", 0, 100, 50)
 
-# 방향 선택
-direction = st.radio("어디로 슈팅할까요?", ["왼쪽", "가운데", "오른쪽"])
+# 실제 공의 타이밍 (랜덤)
+pitch_timing = random.randint(30, 70)  # 공이 오는 타이밍은 30~70 사이
 
-# 골키퍼가 어느 방향으로 막을지 랜덤 설정
-goalkeeper_direction = random.choice(["왼쪽", "가운데", "오른쪽"])
-
-# 슈팅 버튼
-if st.button("슈팅!"):
+if st.button("스윙!"):
     st.session_state.tries += 1
     
-    # 슈팅 성공 여부
-    if direction == goalkeeper_direction:
-        st.write(f"골키퍼는 {goalkeeper_direction}로 막았습니다. 실축!")
-    else:
-        st.write(f"골키퍼는 {goalkeeper_direction}로 갔고, 당신은 {direction}으로 슈팅! 골인!")
-        st.session_state.score += 1
-    
-    # 시도 횟수 표시
-    st.write(f"시도 횟수: {st.session_state.tries}")
-    st.write(f"현재 점수: {st.session_state.score}")
+    # 타이밍 차 계산
+    diff = abs(swing_timing - pitch_timing)
 
-    # 게임 종료 조건
-    if st.session_state.tries >= 5:
-        st.write(f"게임 종료! 총 점수는 {st.session_state.score}점 입니다.")
+    # 판정
+    if diff <= 5:
+        st.success("🎉 완벽한 타이밍! 홈런!!")
+        st.session_state.score += 1
+    elif diff <= 15:
+        st.warning("✨ 안타! 잘 맞았지만 아쉽게도 홈런은 아님")
+    else:
+        st.error("💨 헛스윙! 타이밍이 많이 틀림")
+
+    # 정보 출력
+    st.write(f"공 타이밍: {pitch_timing}")
+    st.write(f"현재 점수(홈런): {st.session_state.score}")
+    st.write(f"시도 횟수: {st.session_state.tries} / 10")
+
+    # 게임 종료
+    if st.session_state.tries >= 10:
+        st.write("---")
+        st.subheader("🏁 게임 종료!")
+        st.write(f"최종 홈런 수: {st.session_state.score}개")
+
         if st.button("다시 시작"):
             st.session_state.score = 0
             st.session_state.tries = 0
-
