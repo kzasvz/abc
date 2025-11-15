@@ -1,24 +1,20 @@
 import streamlit as st
+import random
 
-st.title("📝 퀴즈 게임")
+st.title("📝 랜덤 5문제 퀴즈 게임")
 
-# 퀴즈 문제 리스트
+# 10문제 예시
 quiz_data = [
-    {
-        "question": "Python에서 리스트를 생성하는 방법은?",
-        "options": ["[]", "{}", "()"],
-        "answer": "[]"
-    },
-    {
-        "question": "파이썬에서 문자열을 합치기 위해 사용하는 연산자는?",
-        "options": ["+", "*", "-"],
-        "answer": "+"
-    },
-    {
-        "question": "파이썬에서 '가' 문자를 출력하려면?",
-        "options": ["print('가')", "echo '가'", "console.log('가')"],
-        "answer": "print('가')"
-    },
+    {"question": "Python에서 리스트를 만드는 기호는?", "options": ["[]", "{}", "()"], "answer": "[]"},
+    {"question": "Python에서 문자열 합치는 연산자는?", "options": ["+", "*", "-"], "answer": "+"},
+    {"question": "Python에서 'Hello' 출력하려면?", "options": ["print('Hello')", "echo 'Hello'", "console.log('Hello')"], "answer": "print('Hello')"},
+    {"question": "2 + 3 * 4는?", "options": ["20", "14", "24"], "answer": "14"},
+    {"question": "파이썬에서 나누기 연산자는?", "options": ["/", "//", "%"], "answer": "/"},
+    {"question": "Python 변수 이름으로 사용할 수 없는 것은?", "options": ["my_var", "2var", "var2"], "answer": "2var"},
+    {"question": "Python에서 반복문을 만드는 키워드는?", "options": ["for", "repeat", "loop"], "answer": "for"},
+    {"question": "Python 리스트에서 마지막 요소를 가져오는 방법?", "options": ["list[-1]", "list[0]", "list[last]"], "answer": "list[-1]"},
+    {"question": "Python에서 주석을 만드는 기호는?", "options": ["#", "//", "/* */"], "answer": "#"},
+    {"question": "Python 함수 정의 키워드는?", "options": ["def", "func", "function"], "answer": "def"}
 ]
 
 # 상태 초기화
@@ -26,25 +22,28 @@ if "score" not in st.session_state:
     st.session_state.score = 0
 if "index" not in st.session_state:
     st.session_state.index = 0
+if "selected_quiz" not in st.session_state:
+    st.session_state.selected_quiz = random.sample(quiz_data, 5)  # 랜덤 5문제 선택
 
 # 현재 문제
-if st.session_state.index < len(quiz_data):
-    current = quiz_data[st.session_state.index]
-    st.subheader(current["question"])
-    choice = st.radio("정답을 선택하세요:", current["options"])
+if st.session_state.index < len(st.session_state.selected_quiz):
+    current = st.session_state.selected_quiz[st.session_state.index]
+    st.subheader(f"문제 {st.session_state.index + 1}: {current['question']}")
+    choice = st.radio("정답 선택:", current["options"])
 
     if st.button("제출"):
         if choice == current["answer"]:
             st.success("정답! 🎉")
             st.session_state.score += 1
         else:
-            st.error(f"틀렸습니다! 정답은 {current['answer']} 입니다.")
+            st.error(f"틀렸습니다! 정답: {current['answer']}")
         st.session_state.index += 1
         st.experimental_rerun()
 else:
     st.subheader("🏁 퀴즈 종료!")
-    st.write(f"최종 점수: {st.session_state.score} / {len(quiz_data)}")
+    st.write(f"최종 점수: {st.session_state.score} / 5")
     if st.button("다시 시작"):
         st.session_state.score = 0
         st.session_state.index = 0
+        st.session_state.selected_quiz = random.sample(quiz_data, 5)  # 다시 랜덤 5문제
         st.experimental_rerun()
