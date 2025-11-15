@@ -1,48 +1,43 @@
 import streamlit as st
 import random
 
-# 카드 덱 초기화
-card_suits = ["♠", "♣", "♦", "♥"]
-card_values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
-
-deck = [f"{value}{suit}" for suit in card_suits for value in card_values]
-
-# 점수 계산 함수
-def calculate_card_score(card):
-    value = card[:-1]  # 카드에서 숫자나 문자만 추출 (예: 2, 10, J 등)
-    if value in ["J", "Q", "K"]:
-        return 10
-    elif value == "A":
-        return 11
-    else:
-        return int(value)
-
 # 게임 상태 초기화
 if "score" not in st.session_state:
     st.session_state.score = 0
+if "tries" not in st.session_state:
+    st.session_state.tries = 0
 
-# 타이틀과 카드 뽑기 버튼
-st.title("🎴 카드 뽑기 게임")
+# 타이틀
+st.title("⚽️ 축구 패널티 슈팅 게임")
 
-st.write(f"현재 점수: {st.session_state.score}")
+# 게임 설명
+st.write("패널티 슈팅을 하세요! 골대에 공을 넣으면 점수를 얻습니다.")
 
-if st.button("카드 뽑기"):
-    # 덱에서 랜덤으로 카드 한 장 뽑기
-    card = random.choice(deck)
-    deck.remove(card)  # 뽑은 카드는 덱에서 제거
+# 방향 선택
+direction = st.radio("어디로 슈팅할까요?", ["왼쪽", "가운데", "오른쪽"])
 
-    # 점수 계산
-    card_score = calculate_card_score(card)
-    st.session_state.score += card_score
+# 골키퍼가 어느 방향으로 막을지 랜덤 설정
+goalkeeper_direction = random.choice(["왼쪽", "가운데", "오른쪽"])
 
-    # 카드 결과 출력
-    st.write(f"뽑은 카드: {card}")
-    st.write(f"이 카드의 점수: {card_score}")
-    st.write(f"총 점수: {st.session_state.score}")
+# 슈팅 버튼
+if st.button("슈팅!"):
+    st.session_state.tries += 1
+    
+    # 슈팅 성공 여부
+    if direction == goalkeeper_direction:
+        st.write(f"골키퍼는 {goalkeeper_direction}로 막았습니다. 실축!")
+    else:
+        st.write(f"골키퍼는 {goalkeeper_direction}로 갔고, 당신은 {direction}으로 슈팅! 골인!")
+        st.session_state.score += 1
+    
+    # 시도 횟수 표시
+    st.write(f"시도 횟수: {st.session_state.tries}")
+    st.write(f"현재 점수: {st.session_state.score}")
 
-    # 덱이 비었으면 게임 종료
-    if len(deck) == 0:
-        st.write("덱이 비었습니다! 게임이 종료되었습니다.")
-        if st.button("게임 다시 시작"):
+    # 게임 종료 조건
+    if st.session_state.tries >= 5:
+        st.write(f"게임 종료! 총 점수는 {st.session_state.score}점 입니다.")
+        if st.button("다시 시작"):
             st.session_state.score = 0
-            deck = [f"{value}{suit}" for suit in card_suits for value in card_values]
+            st.session_state.tries = 0
+
