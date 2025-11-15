@@ -1,46 +1,40 @@
 import streamlit as st
+import time
 import random
 
-st.title("🗡️ 장비 강화 게임 (판매 1회 제한)")
+st.title("⚡ 반응 속도 테스트 게임")
 
 # 상태 초기화
-if "level" not in st.session_state:
-    st.session_state.level = 0
-if "gold" not in st.session_state:
-    st.session_state.gold = 1000
-if "can_sell" not in st.session_state:
-    st.session_state.can_sell = True  # 현재 장비 판매 가능 여부
+if "start_time" not in st.session_state:
+    st.session_state.start_time = None
+if "best_time" not in st.session_state:
+    st.session_state.best_time = None
 
-st.write(f"현재 장비 강화 단계: **+{st.session_state.level}**")
-st.write(f"보유 골드: **{st.session_state.gold}G**")
-st.write(f"판매 가능 여부: {'✅ 판매 가능' if st.session_state.can_sell else '❌ 판매 불가'}")
+st.write("버튼이 나타나면 최대한 빨리 클릭하세요!")
 
-st.write("---")
+# 버튼 랜덤 등장
+if "button_ready" not in st.session_state:
+    st.session_state.button_ready = False
 
-# 강화 비용 & 확률
-upgrade_cost = 100 + st.session_state.level * 50
-success_rate = max(10, 100 - st.session_state.level * 10)
-destroy_chance = max(0, st.session_state.level * 2 - 10)
+if not st.session_state.button_ready:
+    wait_time = random.uniform(1, 5)  # 1~5초 랜덤
+    st.write("준비 중...")
+    time.sleep(wait_time)
+    st.session_state.button_ready = True
+    st.session_state.start_time = time.time()
 
-st.write(f"강화 비용: {upgrade_cost}G")
-st.write(f"성공 확률: {success_rate}%")
-st.write(f"파괴 확률: {destroy_chance}%")
+if st.session_state.button_ready:
+    if st.button("지금 클릭!"):
+        reaction_time = (time.time() - st.session_state.start_time) * 1000  # ms
+        st.success(f"반응 속도: {reaction_time:.0f} ms")
 
-# 강화 버튼
-if st.button("강화하기"):
-    if st.session_state.gold < upgrade_cost:
-        st.error("❌ 골드가 부족합니다!")
-    else:
-        st.session_state.gold -= upgrade_cost
-        roll = random.randint(1, 100)
+        # 최고 기록 갱신
+        if (st.session_state.best_time is None) or (reaction_time < st.session_state.best_time):
+            st.session_state.best_time = reaction_time
+            st.balloons()
+            st.write("🏆 최고 기록 갱신!")
 
-        if roll <= success_rate:
-            st.session_state.level += 1
-            st.session_state.can_sell = True  # 강화 성공하면 판매 가능
-            st.success(f"🎉 강화 성공! → +{st.session_state.level}")
-        elif roll <= success_rate + destroy_chance:
-            st.session_state.level = 0
-            st.session_state.can_sell = False  # 파괴되면 판매 불가
-            st.error("💥 장비 파괴! +0으로 초기화")
-        else:
-            st.warning("⚠️ 강화 실패! 단
+        st.write(f"최고 기록: {st.session_state.best_time:.0f} ms")
+
+        # 다음 게임 준비
+        st.session_state.button_ready = False
