@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import time
 
-st.title("📝 랜덤 5문제 퀴즈 (자동 다음 문제)")
+st.title("⏱️ 스피드 퀴즈 게임 (10초 제한)")
 
 # 10문제 예시
 quiz_data = [
@@ -27,12 +27,26 @@ if "selected_quiz" not in st.session_state:
     st.session_state.selected_quiz = random.sample(quiz_data, 5)
 if "answered" not in st.session_state:
     st.session_state.answered = False
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
 
 # 현재 문제
 if st.session_state.index < len(st.session_state.selected_quiz):
     current = st.session_state.selected_quiz[st.session_state.index]
     st.subheader(f"문제 {st.session_state.index + 1}: {current['question']}")
     choice = st.radio("정답 선택:", current["options"], key=st.session_state.index)
+
+    # 남은 시간 계산
+    elapsed = time.time() - st.session_state.start_time
+    remaining = max(0, 10 - elapsed)
+    st.write(f"남은 시간: {remaining:.1f}초")
+
+    # 시간 초과 시 자동 다음 문제
+    if remaining <= 0 and not st.session_state.answered:
+        st.warning(f"시간 초과! 정답: {current['answer']}")
+        st.session_state.index += 1
+        st.session_state.start_time = time.time()
+        st.experimental_rerun()
 
     if st.button("제출", key=f"btn{st.session_state.index}") and not st.session_state.answered:
         st.session_state.answered = True
@@ -41,11 +55,11 @@ if st.session_state.index < len(st.session_state.selected_quiz):
             st.session_state.score += 1
         else:
             st.error(f"틀렸습니다! 정답: {current['answer']}")
-        
         # 3초 뒤 다음 문제
         time.sleep(3)
         st.session_state.index += 1
         st.session_state.answered = False
+        st.session_state.start_time = time.time()
         st.experimental_rerun()
 else:
     st.subheader("🏁 퀴즈 종료!")
@@ -54,4 +68,5 @@ else:
         st.session_state.score = 0
         st.session_state.index = 0
         st.session_state.selected_quiz = random.sample(quiz_data, 5)
+        st.session_state.start_time = time.time()
         st.experimental_rerun()
