@@ -1,48 +1,47 @@
-iimport streamlit as st
+import streamlit as st
 import random
 
-st.title("⚾ 홈런 더비 게임!")
+st.title("🗡️ 장비 강화 게임")
 
-# 상태 초기화
-if "score" not in st.session_state:
-    st.session_state.score = 0
-if "tries" not in st.session_state:
-    st.session_state.tries = 0
+# 상태값 초기화
+if "level" not in st.session_state:
+    st.session_state.level = 0
+if "gold" not in st.session_state:
+    st.session_state.gold = 1000
 
-st.write("배트 스윙 타이밍을 맞추어 홈런을 날려보세요!")
+st.write(f"현재 장비 강화 단계: **+{st.session_state.level}**")
+st.write(f"보유 골드: **{st.session_state.gold}G**")
 
-# 타이밍 조절 슬라이더
-swing_timing = st.slider("스윙 타이밍 (0~100)", 0, 100, 50)
+st.write("---")
 
-# 실제 공의 타이밍 (랜덤)
-pitch_timing = random.randint(30, 70)  # 공이 오는 타이밍은 30~70 사이
+# 강화 비용 & 확률 설정
+upgrade_cost = 100 + st.session_state.level * 50
+success_rate = max(10, 100 - st.session_state.level * 10)  # 단계 올라갈수록 확률 낮아짐
+destroy_chance = max(0, st.session_state.level * 2 - 10)   # 5강 이상부터 파괴 확률 증가
 
-if st.button("스윙!"):
-    st.session_state.tries += 1
-    
-    # 타이밍 차 계산
-    diff = abs(swing_timing - pitch_timing)
+st.write(f"강화 비용: {upgrade_cost}G")
+st.write(f"성공 확률: {success_rate}%")
+st.write(f"파괴 확률: {destroy_chance}%")
 
-    # 판정
-    if diff <= 5:
-        st.success("🎉 완벽한 타이밍! 홈런!!")
-        st.session_state.score += 1
-    elif diff <= 15:
-        st.warning("✨ 안타! 잘 맞았지만 아쉽게도 홈런은 아님")
+if st.button("강화하기"):
+    if st.session_state.gold < upgrade_cost:
+        st.error("❌ 골드가 부족합니다!")
     else:
-        st.error("💨 헛스윙! 타이밍이 많이 틀림")
+        st.session_state.gold -= upgrade_cost
 
-    # 정보 출력
-    st.write(f"공 타이밍: {pitch_timing}")
-    st.write(f"현재 점수(홈런): {st.session_state.score}")
-    st.write(f"시도 횟수: {st.session_state.tries} / 10")
+        roll = random.randint(1, 100)
 
-    # 게임 종료
-    if st.session_state.tries >= 10:
-        st.write("---")
-        st.subheader("🏁 게임 종료!")
-        st.write(f"최종 홈런 수: {st.session_state.score}개")
+        if roll <= success_rate:
+            st.session_state.level += 1
+            st.success(f"🎉 강화 성공! → +{st.session_state.level}")
+        elif roll <= success_rate + destroy_chance:
+            st.session_state.level = 0
+            st.error("💥 장비 파괴! +0 으로 초기화되었습니다.")
+        else:
+            st.warning("⚠️ 강화 실패! 단계는 유지됩니다.")
 
-        if st.button("다시 시작"):
-            st.session_state.score = 0
-            st.session_state.tries = 0
+st.write("---")
+
+if st.button("게임 초기화"):
+    st.session_state.level = 0
+    st.session_state.gold = 1000
