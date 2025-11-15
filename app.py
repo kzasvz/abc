@@ -1,40 +1,50 @@
 import streamlit as st
-import time
-import random
 
-st.title("⚡ 반응 속도 테스트 게임")
+st.title("📝 퀴즈 게임")
+
+# 퀴즈 문제 리스트
+quiz_data = [
+    {
+        "question": "Python에서 리스트를 생성하는 방법은?",
+        "options": ["[]", "{}", "()"],
+        "answer": "[]"
+    },
+    {
+        "question": "파이썬에서 문자열을 합치기 위해 사용하는 연산자는?",
+        "options": ["+", "*", "-"],
+        "answer": "+"
+    },
+    {
+        "question": "파이썬에서 '가' 문자를 출력하려면?",
+        "options": ["print('가')", "echo '가'", "console.log('가')"],
+        "answer": "print('가')"
+    },
+]
 
 # 상태 초기화
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
-if "best_time" not in st.session_state:
-    st.session_state.best_time = None
+if "score" not in st.session_state:
+    st.session_state.score = 0
+if "index" not in st.session_state:
+    st.session_state.index = 0
 
-st.write("버튼이 나타나면 최대한 빨리 클릭하세요!")
+# 현재 문제
+if st.session_state.index < len(quiz_data):
+    current = quiz_data[st.session_state.index]
+    st.subheader(current["question"])
+    choice = st.radio("정답을 선택하세요:", current["options"])
 
-# 버튼 랜덤 등장
-if "button_ready" not in st.session_state:
-    st.session_state.button_ready = False
-
-if not st.session_state.button_ready:
-    wait_time = random.uniform(1, 5)  # 1~5초 랜덤
-    st.write("준비 중...")
-    time.sleep(wait_time)
-    st.session_state.button_ready = True
-    st.session_state.start_time = time.time()
-
-if st.session_state.button_ready:
-    if st.button("지금 클릭!"):
-        reaction_time = (time.time() - st.session_state.start_time) * 1000  # ms
-        st.success(f"반응 속도: {reaction_time:.0f} ms")
-
-        # 최고 기록 갱신
-        if (st.session_state.best_time is None) or (reaction_time < st.session_state.best_time):
-            st.session_state.best_time = reaction_time
-            st.balloons()
-            st.write("🏆 최고 기록 갱신!")
-
-        st.write(f"최고 기록: {st.session_state.best_time:.0f} ms")
-
-        # 다음 게임 준비
-        st.session_state.button_ready = False
+    if st.button("제출"):
+        if choice == current["answer"]:
+            st.success("정답! 🎉")
+            st.session_state.score += 1
+        else:
+            st.error(f"틀렸습니다! 정답은 {current['answer']} 입니다.")
+        st.session_state.index += 1
+        st.experimental_rerun()
+else:
+    st.subheader("🏁 퀴즈 종료!")
+    st.write(f"최종 점수: {st.session_state.score} / {len(quiz_data)}")
+    if st.button("다시 시작"):
+        st.session_state.score = 0
+        st.session_state.index = 0
+        st.experimental_rerun()
