@@ -1,7 +1,8 @@
 import streamlit as st
 import random
+import time
 
-st.title("📝 랜덤 5문제 퀴즈 게임")
+st.title("📝 랜덤 5문제 퀴즈 (자동 다음 문제)")
 
 # 10문제 예시
 quiz_data = [
@@ -23,21 +24,28 @@ if "score" not in st.session_state:
 if "index" not in st.session_state:
     st.session_state.index = 0
 if "selected_quiz" not in st.session_state:
-    st.session_state.selected_quiz = random.sample(quiz_data, 5)  # 랜덤 5문제 선택
+    st.session_state.selected_quiz = random.sample(quiz_data, 5)
+if "answered" not in st.session_state:
+    st.session_state.answered = False
 
 # 현재 문제
 if st.session_state.index < len(st.session_state.selected_quiz):
     current = st.session_state.selected_quiz[st.session_state.index]
     st.subheader(f"문제 {st.session_state.index + 1}: {current['question']}")
-    choice = st.radio("정답 선택:", current["options"])
+    choice = st.radio("정답 선택:", current["options"], key=st.session_state.index)
 
-    if st.button("제출"):
+    if st.button("제출", key=f"btn{st.session_state.index}") and not st.session_state.answered:
+        st.session_state.answered = True
         if choice == current["answer"]:
             st.success("정답! 🎉")
             st.session_state.score += 1
         else:
             st.error(f"틀렸습니다! 정답: {current['answer']}")
+        
+        # 3초 뒤 다음 문제
+        time.sleep(3)
         st.session_state.index += 1
+        st.session_state.answered = False
         st.experimental_rerun()
 else:
     st.subheader("🏁 퀴즈 종료!")
@@ -45,5 +53,5 @@ else:
     if st.button("다시 시작"):
         st.session_state.score = 0
         st.session_state.index = 0
-        st.session_state.selected_quiz = random.sample(quiz_data, 5)  # 다시 랜덤 5문제
+        st.session_state.selected_quiz = random.sample(quiz_data, 5)
         st.experimental_rerun()
